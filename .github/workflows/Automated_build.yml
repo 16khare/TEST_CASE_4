@@ -93,7 +93,6 @@ jobs:
             - name: Install dependencies
               run: |
                 python -m pip install --upgrade pip
-                pip install lxml
         
             - name: Run build modules script
               env:
