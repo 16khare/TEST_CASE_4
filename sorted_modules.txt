@@ -1,0 +1,9 @@
+commons-lang3
+guava
+Module2
+junit
+My-build-app:TestCase3:1.0-SNAPSHOT
+None:Module2:None
+None:Module1:None
+$My-build-app:$Module1:$1.0-SNAPSHOT
+$My-build-app:$Module2:$1.0-SNAPSHOT
