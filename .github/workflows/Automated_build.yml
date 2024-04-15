@@ -1,0 +1,101 @@
+name: Build and Sort Dependencies
+
+on:
+ push:
+    branches: [ main ]
+
+jobs:
+ build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install lxml
+        pip install networkx
+
+    - name: Run script and generate JSON
+      run: python dependencies.py
+
+    - name: List directory contents
+      run: ls -la
+
+    - name: Commit and push if it changed
+      env:
+        GH_TOKEN: ${{ secrets.TEST_CASE_4 }}
+      run: |
+        git config --global user.name '16khare'
+        git config --global user.email 'chiragkhare93@gmail.com'
+        git add build_dag.json
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update build_dag.json"
+        git status
+
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.TEST_CASE_4}}
+
+    - name: Upload build_dag.json as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: build-dag-json
+        path: build_dag.json
+
+ topological_sort:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install lxml
+        pip install networkx
+
+    - name: Run topological sort script and commit output
+      run: |
+        python topological-sort.py
+        git config --global user.name '16khare'
+        git config --global user.email 'chiragkhare93@gmail.com'
+        git add sorted_modules.txt
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update sorted_modules.txt"
+        git push
+
+ build_modules:
+   needs: topological_sort
+   runs-on: ubuntu-latest
+   steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+        
+            - name: Set up Python
+              uses: actions/setup-python@v2
+              with:
+                python-version: '3.x'
+        
+            - name: Install dependencies
+              run: |
+                python -m pip install --upgrade pip
+                pip install lxml
+        
+            - name: Run build modules script
+              env:
+                ACCESS_TOKEN: ${{ secrets.TEST_CASE_4 }}
+              run: python Build.py 
